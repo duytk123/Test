@@ -1,13 +1,13 @@
 from flask import Flask, request, jsonify, send_file, render_template
-import torch
 import os
 import uuid
 import cv2
-from ultralytics import YOLO
-from werkzeug.utils import secure_filename
 from flask_cors import CORS
 import sys
 import traceback
+import importlib.util
+from ultralytics import YOLO
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)
@@ -24,21 +24,15 @@ os.makedirs(RESULT_FOLDER, exist_ok=True)
 print("Loading YOLO models...")
 
 # --- YOLOv5 ---
-# Add local yolov5 repo to path (used by torch.hub)
-YOLOV5_REPO = os.path.join(BASE_DIR, "yolov5")
-sys.path.insert(0, YOLOV5_REPO)
+# Load hubconf.py trực tiếp
+YOLOV5_HUBCONF = os.path.join(BASE_DIR, "yolov5", "hubconf.py")
+spec = importlib.util.spec_from_file_location("hubconf", YOLOV5_HUBCONF)
+hubconf = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(hubconf)
 
-# Path to best.pt of YOLOv5
-model_v5_path = os.path.join(YOLOV5_REPO, "runs", "train", "exp", "weights", "best_windows.pt")
-
-model_v5 = torch.hub.load(
-    YOLOV5_REPO,
-    'custom',
-    path=model_v5_path,
-    source='local',
-    force_reload=True
-)
-print("✅ YOLOv5 loaded from local.")
+model_v5_path = os.path.join(BASE_DIR, "yolov5", "runs", "train", "exp", "weights", "best_windows.pt")
+model_v5 = hubconf.load('custom', path=model_v5_path, source='local')
+print("✅ YOLOv5 loaded from local hubconf.")
 
 # --- YOLOv8 ---
 model_v8_path = os.path.join(BASE_DIR, "runs", "detect", "train", "weights", "best.pt")
@@ -125,5 +119,5 @@ def serve_result(filename):
 
 # =================== RUN APP ===================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Lấy port từ biến môi trường, mặc định 5000 nếu không có
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
