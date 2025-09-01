@@ -5,7 +5,7 @@ import cv2
 from flask_cors import CORS
 import sys
 import traceback
-import importlib.util
+import torch  # Thêm import torch
 from ultralytics import YOLO
 from werkzeug.utils import secure_filename
 
@@ -24,15 +24,10 @@ os.makedirs(RESULT_FOLDER, exist_ok=True)
 print("Loading YOLO models...")
 
 # --- YOLOv5 ---
-# Load hubconf.py trực tiếp
-YOLOV5_HUBCONF = os.path.join(BASE_DIR, "yolov5", "hubconf.py")
-spec = importlib.util.spec_from_file_location("hubconf", YOLOV5_HUBCONF)
-hubconf = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(hubconf)
-
+YOLOV5_DIR = os.path.join(BASE_DIR, "yolov5")
 model_v5_path = os.path.join(BASE_DIR, "yolov5", "runs", "train", "exp", "weights", "best_windows.pt")
-model_v5 = hubconf.load('custom', path=model_v5_path, source='local')
-print("✅ YOLOv5 loaded from local hubconf.")
+model_v5 = torch.hub.load(YOLOV5_DIR, 'custom', path=model_v5_path, source='local', force_reload=True)
+print("✅ YOLOv5 loaded from local directory.")
 
 # --- YOLOv8 ---
 model_v8_path = os.path.join(BASE_DIR, "runs", "detect", "train", "weights", "best.pt")
