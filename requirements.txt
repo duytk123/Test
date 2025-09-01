@@ -5,3 +5,4 @@ torch==2.8.0
 ultralytics
 gunicorn
 pandas
+tqdm>=4.66.5
