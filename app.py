@@ -125,4 +125,5 @@ def serve_result(filename):
 
 # =================== RUN APP ===================
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Lấy port từ biến môi trường, mặc định 5000 nếu không có
+    app.run(host="0.0.0.0", port=port, debug=True)
