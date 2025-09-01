@@ -20,19 +20,37 @@ RESULT_FOLDER = os.path.join(BASE_DIR, "results")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(RESULT_FOLDER, exist_ok=True)
 
-# =================== LOAD MODELS ===================
-print("Loading YOLO models...")
-
-# --- YOLOv5 ---
+# =================== MODEL PATHS ===================
 YOLOV5_DIR = os.path.join(BASE_DIR, "yolov5")
 model_v5_path = os.path.join(BASE_DIR, "yolov5", "runs", "train", "exp", "weights", "best_windows.pt")
-model_v5 = torch.hub.load(YOLOV5_DIR, 'custom', path=model_v5_path, source='local', force_reload=True)
-print("✅ YOLOv5 loaded from local directory.")
-
-# --- YOLOv8 ---
 model_v8_path = os.path.join(BASE_DIR, "runs", "detect", "train", "weights", "best.pt")
-model_v8 = YOLO(model_v8_path)
-print("✅ YOLOv8 loaded.")
+
+# Khởi tạo biến mô hình là None để lazy loading
+model_v5 = None
+model_v8 = None
+
+# =================== LOAD MODELS (Lazy Loading) ===================
+def load_yolov5():
+    global model_v5
+    if model_v5 is None:
+        try:
+            print("Loading YOLOv5...")
+            model_v5 = torch.hub.load(YOLOV5_DIR, 'custom', path=model_v5_path, source='local', force_reload=True)
+            print("✅ YOLOv5 loaded successfully.")
+        except Exception as e:
+            print("❌ Error loading YOLOv5:", str(e))
+            raise e
+
+def load_yolov8():
+    global model_v8
+    if model_v8 is None:
+        try:
+            print("Loading YOLOv8...")
+            model_v8 = YOLO(model_v8_path)
+            print("✅ YOLOv8 loaded successfully.")
+        except Exception as e:
+            print("❌ Error loading YOLOv8:", str(e))
+            raise e
 
 # =================== HOME ===================
 @app.route("/")
@@ -50,6 +68,8 @@ def save_result_image(img_array, file_id):
 def predict_v5():
     print("Received /predict_v5 request")
     try:
+        load_yolov5()  # Load mô hình nếu chưa load
+
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
 
@@ -80,6 +100,8 @@ def predict_v5():
 def predict_v8():
     print("Received /predict_v8 request")
     try:
+        load_yolov8()  # Load mô hình nếu chưa load
+
         if "file" not in request.files:
             return jsonify({"error": "No file uploaded"}), 400
 
@@ -115,4 +137,4 @@ def serve_result(filename):
 # =================== RUN APP ===================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)  # Tắt debug cho production
