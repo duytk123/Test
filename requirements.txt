@@ -1,8 +1,0 @@
-flask
-flask-cors
-torch
-torchvision
-ultralytics
-opencv-python
-werkzeug
-# Force update for Render
