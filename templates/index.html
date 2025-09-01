@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YOLO Detection System</title>
+    <!-- CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Nhận diện trái cây với YOLOv5 và YOLOv8</h1>
+      </div>
+
+      <div class="main-section">
+        <!-- Input Type Selection -->
+        <div class="input-type-tabs">
+          <button class="input-tab active" onclick="switchInputType('image')">
+            📷 Ảnh
+          </button>
+          <button class="input-tab" onclick="switchInputType('video')">
+            🎬 Video
+          </button>
+          <button class="input-tab" onclick="switchInputType('camera')">
+            📹 Camera
+          </button>
+        </div>
+
+        <!-- Image Input -->
+        <div id="image-input" class="input-content active">
+          <div
+            class="upload-area"
+            onclick="document.getElementById('imageInput').click()"
+          >
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">Kéo thả hoặc click để chọn ảnh</div>
+            <div class="upload-subtext">Hỗ trợ JPG, PNG, GIF</div>
+            <input
+              type="file"
+              id="imageInput"
+              class="file-input"
+              accept="image/*"
+            />
+          </div>
+
+          <div class="model-selection">
+            <h3>🤖 Chọn Model để nhận diện:</h3>
+            <div class="model-buttons">
+              <button
+                class="btn yolov5"
+                id="processYolov5Btn"
+                disabled
+                onclick="processWithModel('yolov5')"
+              >
+                Nhận diện với YOLOv5
+              </button>
+              <button
+                class="btn yolov8"
+                id="processYolov8Btn"
+                disabled
+                onclick="processWithModel('yolov8')"
+              >
+                Nhận diện với YOLOv8
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Input -->
+        <div id="video-input" class="input-content">
+          <div
+            class="upload-area"
+            onclick="document.getElementById('videoInput').click()"
+          >
+            <div class="upload-icon">🎬</div>
+            <div class="upload-text">Chọn video để nhận diện</div>
+            <div class="upload-subtext"></div>
+            <input
+              type="file"
+              id="videoInput"
+              class="file-input"
+              accept="video/*"
+            />
+          </div>
+
+          <div class="model-selection">
+            <h3>Chọn Model xử lý video:</h3>
+            <div class="model-buttons">
+              <button
+                class="btn yolov5"
+                id="videoYolov5Btn"
+                disabled
+                onclick="processVideo('yolov5')"
+              >
+                Nhận diện bằng YOLOv5
+              </button>
+              <button
+                class="btn yolov8"
+                id="videoYolov8Btn"
+                disabled
+                onclick="processVideo('yolov8')"
+              >
+                Nhận diện bằng YOLOv8
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Camera Input -->
+        <div id="camera-input" class="input-content">
+          <div class="camera-controls">
+            <button
+              class="btn success"
+              id="startCameraBtn"
+              onclick="startCamera()"
+            >
+              📹 Bật Camera
+            </button>
+            <button
+              class="btn danger"
+              id="stopCameraBtn"
+              disabled
+              onclick="stopCamera()"
+            >
+              ⏹️ Tắt Camera
+            </button>
+          </div>
+
+          <div class="model-selection">
+            <h3>🤖 Chọn Model cho Camera:</h3>
+            <div class="model-buttons">
+              <button
+                class="btn yolov5"
+                id="cameraYolov5Btn"
+                disabled
+                onclick="startRealtimeDetection('yolov5')"
+              >
+                YOLOv5
+              </button>
+              <button
+                class="btn yolov8"
+                id="cameraYolov8Btn"
+                disabled
+                onclick="startRealtimeDetection('yolov8')"
+              >
+                YOLOv8
+              </button>
+              <button
+                class="btn secondary"
+                id="stopRealtimeBtn"
+                disabled
+                onclick="stopRealtimeDetection()"
+              >
+                ⏹️ Dừng nhận diện
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+          <div class="loading-spinner"></div>
+          <div class="loading-text" id="loadingText">Đang xử lý...</div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="preview-section" id="previewSection" style="display: none">
+          <div class="preview-card original">
+            <h3>Ảnh/Video Gốc</h3>
+            <div class="preview-content">
+              <div id="originalPreview">
+                <div class="preview-placeholder">Chưa có nội dung</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-card result">
+            <h3 id="resultTitle">Kết Quả Nhận Diện</h3>
+            <div class="preview-content">
+              <div id="resultPreview">
+                <div class="preview-placeholder">Chờ xử lý...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JS -->
+    <script src="{{ url_for('static', filename='javas.js') }}"></script>
+  </body>
+</html>
