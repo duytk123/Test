@@ -6,3 +6,4 @@ ultralytics
 gunicorn
 pandas
 tqdm>=4.66.5
+seaborn>=0.13.0
