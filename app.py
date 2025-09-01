@@ -12,33 +12,38 @@ import traceback
 app = Flask(__name__)
 CORS(app)
 
-# =================== PATH TO LOCAL YOLOv5 ===================
-sys.path.insert(0, r"D:/YOLOV5")
+# =================== FOLDERS ===================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+RESULT_FOLDER = os.path.join(BASE_DIR, "results")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(RESULT_FOLDER, exist_ok=True)
 
 # =================== LOAD MODELS ===================
 print("Loading YOLO models...")
 
 # --- YOLOv5 ---
+# Add local yolov5 repo to path (used by torch.hub)
+YOLOV5_REPO = os.path.join(BASE_DIR, "yolov5")
+sys.path.insert(0, YOLOV5_REPO)
+
+# Path to best.pt of YOLOv5
+model_v5_path = os.path.join(YOLOV5_REPO, "runs", "train", "exp", "weights", "best_windows.pt")
+
 model_v5 = torch.hub.load(
-    'D:/YOLOV8/yolov5',
+    YOLOV5_REPO,
     'custom',
-    path=r"D:\YOLOV8\yolov5\runs\train\exp\weights\best_windows.pt",
+    path=model_v5_path,
     source='local',
     force_reload=True
 )
-
-
-print("YOLOv5 loaded from local.")
+print("✅ YOLOv5 loaded from local.")
 
 # --- YOLOv8 ---
-model_v8 = YOLO(r"D:/YOLOV8/runs/detect/train/weights/best.pt")
-print("YOLOv8 loaded.")
-
-# =================== FOLDERS ===================
-UPLOAD_FOLDER = "uploads"
-RESULT_FOLDER = "results"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(RESULT_FOLDER, exist_ok=True)
+model_v8_path = os.path.join(BASE_DIR, "runs", "detect", "train", "weights", "best.pt")
+model_v8 = YOLO(model_v8_path)
+print("✅ YOLOv8 loaded.")
 
 # =================== HOME ===================
 @app.route("/")
@@ -52,7 +57,6 @@ def save_result_image(img_array, file_id):
     return output_path
 
 # =================== YOLOv5 API ===================
-# YOLOv5 API
 @app.route("/predict_v5", methods=["POST"])
 def predict_v5():
     print("Received /predict_v5 request")
@@ -68,10 +72,8 @@ def predict_v5():
         print("YOLOv5 - File saved:", input_path)
 
         # Run inference
-        results = model_v5(input_path)          
+        results = model_v5(input_path)
         annotated = results.render()[0]
-
-        # ✅ Fix màu cho YOLOv5
         annotated = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
 
         output_path = save_result_image(annotated, file_id)
@@ -83,7 +85,6 @@ def predict_v5():
         print("YOLOv5 error:", e)
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-
 
 # =================== YOLOv8 API ===================
 @app.route("/predict_v8", methods=["POST"])
@@ -102,7 +103,8 @@ def predict_v8():
 
         # Run inference
         results = model_v8(input_path)
-        annotated = results[0].plot()  # YOLOv8 trả về RGB nhưng OpenCV vẫn save chuẩn
+        annotated = results[0].plot()
+
         output_path = save_result_image(annotated, file_id)
         print("YOLOv8 - Result saved:", output_path)
 
