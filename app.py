@@ -5,7 +5,7 @@ import cv2
 from flask_cors import CORS
 import sys
 import traceback
-import torch  # Thêm import torch
+import torch  # Đảm bảo import torch
 from ultralytics import YOLO
 from werkzeug.utils import secure_filename
 
